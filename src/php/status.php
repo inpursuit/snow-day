@@ -1,4 +1,7 @@
 <?php
+  //ini_set('display_errors', 'On');
+  //error_reporting(E_ALL);
+
   header('Content-type: text/plain');
 
   $url = htmlspecialchars($_GET["url"]);
@@ -10,17 +13,25 @@
   $DOM = new DOMDocument;
   $DOM->loadHTML($data);
 
-  $status = $DOM->getElementById('status');
+  $status = $DOM->getElementById('ContentArea');
   if ($status != null) {
-    $text = $status->textContent;
-    if(strpos($text,'closed') !== false) {
-      print("CLOSED");
-    } else if(strpos($text,'2 hour') !== false) {
-      print("DELAY");
-    } else {
-      print("OPEN");
+    $bqs = $status->getElementsByTagName('blockquote');
+    $bq = $bqs->length > 0 ? $bqs->item(0) : null;
+    if($bq != null) {
+      $divs = $bq->getElementsByTagName('div');
+      $div = $divs->length >= 2 ? $divs->item(1) : null;
+      if($div != null) {
+        $text = $div->textContent;
+        if(strpos($text,'closed') !== false) {
+          print("CLOSED");
+        } else if(preg_match('/[2|two] hour/i', $text)) {
+          print("DELAY");
+        } else {
+          print("OPEN");
+        }
+      }
     }
   } else {
-    print("No status found");
-  }
+    print("ERROR");
+  } 
 ?>
